@@ -1,9 +1,13 @@
-# HRM_System
+# AI-Powered ERP System
 
-Human Resource Management System (HRM_System)  
-Author: Junaid-Shiekh
+AI-Powered Enterprise Resource Planning System (ERP System)  
 
-A simple and extensible Human Resource Management system to manage employees, attendance, leaves, payroll, roles & permissions, and reports. This repository contains the source code, configuration, and scripts needed to run and develop the application.
+An intelligent and extensible ERP system designed for Small and Medium Enterprises (SMEs).
+
+The system integrates Human Resource Management (HRM), Inventory Management, AI-based Demand Forecasting, Resume Screening, and AI-powered HR assistance into a centralized platform.
+
+This repository contains the complete source code, configuration files, AI modules, and setup instructions required to run and develop the ERP application.
+
 
 ---
 
@@ -27,10 +31,19 @@ A simple and extensible Human Resource Management system to manage employees, at
 
 ## Features
 
-- Employee CRUD (create, read, update, delete)
-- Attendance tracking and reports
-- Leave management (apply, approve/reject)
-- Payroll processing (salary generation, payslips)
+- Employee Management
+- Department Management
+- Branch Management
+- Designation Management
+- Inventory Management
+- Warehouse Management
+- AI Demand Forecasting
+- Forecast Analytics Dashboard
+- Resume Screening System
+- AI HR Chatbot
+- Role-Based Access
+- REST API Integration
+- Laravel + FastAPI Integration
 - Role-based access control (admins, managers, employees)
 - Exportable reports (CSV/PDF)
 - Notifications (email / in-app) — optional
