@@ -133,6 +133,181 @@ Replace these with the actual stack used by this repo.
 
 ---
 
+# AI Demand Forecasting Module
+
+## Overview
+The AI Demand Forecasting module is integrated into the Inventory Management section of the ERP System.
+
+This module predicts future inventory demand using Machine Learning and provides intelligent stock recommendations.
+
+### Features
+- AI-based demand prediction
+- Recommended stock calculation
+- Suggested reorder quantity
+- Inventory status analysis
+- Forecast dashboard integration
+- FastAPI + Laravel integration
+
+---
+
+# Technologies Used
+- Laravel
+- Vue.js + Inertia.js
+- FastAPI
+- Python
+- Scikit-learn
+- Pandas
+
+---
+
+# AI Demand Forecasting Setup Guide
+
+## 1. Navigate to AI Folder
+
+```bash
+cd AI_Demand_Forecasting
+```
+
+---
+
+## 2. Create Python Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+---
+
+## 3. Activate Virtual Environment
+
+### Windows PowerShell
+
+```bash
+venv\Scripts\activate
+```
+
+---
+
+## 4. Install Required Python Packages
+
+```bash
+pip install fastapi uvicorn pandas scikit-learn joblib numpy
+```
+
+---
+
+## 5. Run FastAPI Server
+
+```bash
+uvicorn api:app --reload --port 8001
+```
+
+---
+
+## 6. Open API Documentation
+
+```text
+http://127.0.0.1:8001/docs
+```
+
+---
+
+# Laravel Setup
+
+## 1. Install Composer Dependencies
+
+```bash
+composer install
+```
+
+---
+
+## 2. Install Node Modules
+
+```bash
+npm install
+```
+
+---
+
+## 3. Run Laravel Server
+
+```bash
+php artisan serve
+```
+
+---
+
+## 4. Run Vite Development Server
+
+```bash
+npm run dev
+```
+
+---
+
+# Laravel Environment Variable
+
+Add this inside the Laravel `.env` file:
+
+```env
+PYTHON_AI_URL=http://127.0.0.1:8001/predict
+```
+
+---
+
+# Important Note About Dataset Files
+
+The AI dataset files are NOT included in the GitHub repository because the files exceed GitHub upload size limits.
+
+You must manually place the dataset CSV files inside:
+
+```text
+AI_Demand_Forecasting/data/
+```
+
+Required dataset files:
+- sales_train_validation.csv
+- sell_prices.csv
+
+These files should be downloaded or shared separately through Google Drive / OneDrive.
+
+---
+
+# Running the Complete System
+
+## Terminal 1 — Laravel Server
+
+```bash
+php artisan serve
+```
+
+## Terminal 2 — Vite Frontend
+
+```bash
+npm run dev
+```
+
+## Terminal 3 — FastAPI AI Server
+
+```bash
+cd AI_Demand_Forecasting
+venv\Scripts\activate
+uvicorn api:app --reload --port 8001
+```
+
+---
+
+# Inventory Forecast Module Access
+
+Open:
+
+```text
+http://127.0.0.1:8000/inventory/forecast
+```
+
+The Laravel ERP system will automatically communicate with the FastAPI AI forecasting service.
+
 ## Configuration
 
 Create a `.env` file from the example file if present (e.g., `.env.example`), and set the necessary environment variables. Example variables you will typically need:
