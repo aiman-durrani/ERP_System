@@ -59,4 +59,51 @@ class JobApplicationController extends Controller
         $this->applicationService->delete($jobApplication);
         return redirect()->back()->with('success', 'Application deleted.');
     }
+
+    public function screen(Request $request, \App\Services\GeminiService $geminiService)
+    {
+        $applications = JobApplication::with('job')
+            ->whereNotNull('resume_path')
+            ->whereIn('status', [ApplicationStatus::APPLIED, ApplicationStatus::SCREENING])
+            ->get();
+
+        if ($applications->isEmpty()) {
+            return redirect()->back()->with('error', 'No applications found with resumes that are pending screening.');
+        }
+
+        $screenedCount = 0;
+        $failedCount = 0;
+
+        foreach ($applications as $application) {
+            $job = $application->job;
+            $result = $geminiService->screenResume(
+                $application->resume_path,
+                $job->title ?? '',
+                $job->description ?? '',
+                $job->requirements ?? ''
+            );
+
+            if ($result && isset($result['score'])) {
+                $application->update([
+                    'ai_score' => $result['score'],
+                    'ai_feedback' => $result['feedback'] ?? null,
+                    'screened_at' => now(),
+                    'status' => ApplicationStatus::SCREENING,
+                ]);
+                $screenedCount++;
+            } else {
+                $failedCount++;
+            }
+        }
+
+        if ($screenedCount > 0) {
+            $msg = "Successfully screened {$screenedCount} application(s).";
+            if ($failedCount > 0) {
+                $msg .= " Failed to screen {$failedCount} application(s).";
+            }
+            return redirect()->back()->with('success', $msg);
+        }
+
+        return redirect()->back()->with('error', 'AI screening failed for all resumes. Please check your Gemini API key and logs.');
+    }
 }

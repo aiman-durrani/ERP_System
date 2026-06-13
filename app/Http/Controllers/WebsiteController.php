@@ -39,7 +39,7 @@ class WebsiteController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'resume' => 'required|file|mimes:pdf,docx,jpg,jpeg,png,webp|max:5120',
         ]);
 
         $job = JobPosting::findOrFail($request->job_id);

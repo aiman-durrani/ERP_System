@@ -21,12 +21,16 @@ class JobApplication extends Model
         'status',
         'resume_path',
         'applied_at',
+        'ai_score',
+        'ai_feedback',
+        'screened_at',
     ];
 
 
     protected $casts = [
         'status' => ApplicationStatus::class,
         'applied_at' => 'datetime',
+        'screened_at' => 'datetime',
     ];
 
     public function job(): BelongsTo

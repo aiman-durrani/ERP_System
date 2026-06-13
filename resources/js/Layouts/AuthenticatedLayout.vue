@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import AppSidebar from '@/Components/AppSidebar.vue';
 import AppTopbar from '@/Components/AppTopbar.vue';
+import ChatbotWidget from '@/Components/ChatbotWidget.vue';
 </script>
 
 <template>
@@ -17,5 +18,7 @@ import AppTopbar from '@/Components/AppTopbar.vue';
                 <slot />
             </main>
         </div>
+
+        <ChatbotWidget />
     </div>
 </template>

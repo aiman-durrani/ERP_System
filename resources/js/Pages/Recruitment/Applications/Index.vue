@@ -44,6 +44,22 @@ const filterConfig = [
     { name: 'job_posting_id', label: 'Job Posting', type: 'dropdown', options: props.jobs, optionLabel: 'title', optionValue: 'id' }
 ];
 
+const screening = ref(false);
+const triggerScreening = () => {
+    screening.value = true;
+    router.post(route('job-applications.screen'), {}, {
+        onFinish: () => screening.value = false
+    });
+};
+
+const getScoreSeverity = (score) => {
+    if (score === null || score === undefined) return 'secondary';
+    if (score >= 80) return 'success';
+    if (score >= 60) return 'info';
+    if (score >= 40) return 'warning';
+    return 'danger';
+};
+
 // SweetAlert State
 const showAlert = ref(false);
 const alertConfig = ref({
@@ -127,6 +143,7 @@ const rowClass = (data) => {
     <AuthenticatedLayout>
         <div class="mb-6 flex justify-between items-center">
             <h2 class="text-2xl font-bold text-gray-800">Job Applications</h2>
+            <Button label="Screen Resumes with AI" icon="pi pi-sparkles" class="!bg-[#1C0D82] !border-[#1C0D82] hover:!bg-[#150a61] text-white !px-6 !py-2.5" @click="triggerScreening" :loading="screening" />
         </div>
 
         <SearchFilter v-model="searchTerm" v-model:perPage="perPage" placeholder="Search by candidate name or email..."
@@ -156,6 +173,12 @@ const rowClass = (data) => {
                 <Column field="applied_at" header="Applied Date" sortable>
                     <template #body="slotProps">
                         {{ new Date(slotProps.data.applied_at).toLocaleDateString() }}
+                    </template>
+                </Column>
+                <Column field="ai_score" header="AI Score" sortable>
+                    <template #body="slotProps">
+                        <Tag v-if="slotProps.data.ai_score !== null" :value="slotProps.data.ai_score + '%'" :severity="getScoreSeverity(slotProps.data.ai_score)" />
+                        <span v-else class="text-gray-400 italic text-sm">-</span>
                     </template>
                 </Column>
                 <Column header="CV / Resume">
@@ -231,6 +254,20 @@ const rowClass = (data) => {
                             <i class="pi pi-file-pdf"></i>
                             Download Resume
                         </a>
+                    </div>
+                </div>
+
+                <div v-if="selectedApplication.ai_score !== null" class="p-4 bg-purple-50 rounded-xl space-y-3 border border-purple-100">
+                    <span class="text-xs font-bold text-purple-700 uppercase tracking-wider block">AI Evaluation</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-gray-800">Match Score:</span>
+                        <Tag :value="selectedApplication.ai_score + '%'" :severity="getScoreSeverity(selectedApplication.ai_score)" />
+                    </div>
+                    <div class="text-sm text-gray-700 leading-relaxed">
+                        <strong>Feedback:</strong> {{ selectedApplication.ai_feedback }}
+                    </div>
+                    <div class="text-xs text-gray-400 font-medium" v-if="selectedApplication.screened_at">
+                        Screened on {{ new Date(selectedApplication.screened_at).toLocaleString() }}
                     </div>
                 </div>
             </div>

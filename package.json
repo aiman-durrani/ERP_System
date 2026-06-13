@@ -23,6 +23,7 @@
     },
     "dependencies": {
         "@primevue/themes": "^4.5.4",
+        "marked": "^18.0.5",
         "primeicons": "^7.0.0",
         "primevue": "^4.5.4"
     }

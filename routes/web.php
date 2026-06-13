@@ -24,6 +24,7 @@ Route::prefix('employee')->middleware(['auth:employee', 'verified'])->group(func
 });
 
 Route::middleware('auth:web,employee')->group(function () {
+    Route::post('/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])->name('chat');
     Route::resource('users', \App\Http\Controllers\UserController::class);
     Route::resource('roles', \App\Http\Controllers\RoleController::class);
     Route::resource('branches', \App\Http\Controllers\BranchController::class);
@@ -35,6 +36,7 @@ Route::middleware('auth:web,employee')->group(function () {
     Route::resource('job-categories', \App\Http\Controllers\JobCategoryController::class);
     Route::resource('job-postings', \App\Http\Controllers\JobPostingController::class);
     Route::resource('candidates', \App\Http\Controllers\CandidateController::class);
+    Route::post('job-applications/screen', [\App\Http\Controllers\JobApplicationController::class, 'screen'])->name('job-applications.screen');
     Route::resource('job-applications', \App\Http\Controllers\JobApplicationController::class);
     Route::resource('contract-types', \App\Http\Controllers\ContractTypeController::class);
     Route::resource('contracts', \App\Http\Controllers\ContractController::class);

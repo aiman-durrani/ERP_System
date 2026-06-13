@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // For MySQL/MariaDB, we can use DB::statement to modify the enum
-        DB::statement("ALTER TABLE payroll_runs MODIFY COLUMN status ENUM('draft', 'pending_approval', 'approved', 'submitted', 'paid') DEFAULT 'draft'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE payroll_runs MODIFY COLUMN status ENUM('draft', 'pending_approval', 'approved', 'submitted', 'paid') DEFAULT 'draft'");
+        }
     }
 
     /**
@@ -21,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE payroll_runs MODIFY COLUMN status ENUM('draft', 'approved', 'locked', 'paid') DEFAULT 'draft'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE payroll_runs MODIFY COLUMN status ENUM('draft', 'approved', 'locked', 'paid') DEFAULT 'draft'");
+        }
     }
 };
