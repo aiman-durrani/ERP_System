@@ -9,6 +9,8 @@ use App\Models\AttendanceRecord;
 use App\Models\Candidate;
 use App\Models\JobApplication;
 use App\Models\User;
+use App\Models\LeaveType;
+use App\Models\LeavePolicy;
 use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +51,8 @@ class ChatbotController extends Controller
                 'job_postings' => $jobs->toArray(),
                 'candidates' => $candidates->toArray(),
                 'job_applications' => $applications->toArray(),
+                'leave_types' => LeaveType::all()->toArray(),
+                'leave_policies' => LeavePolicy::with('leaveType')->get()->toArray(),
             ];
 
             $systemInstruction .= "\n\nYou are speaking to an HR Administrator. Here is the full company context:\n" . json_encode($contextData);
@@ -67,6 +71,8 @@ class ChatbotController extends Controller
                 'role' => 'Employee',
                 'user_name' => $user->name,
                 'employee_record' => $employee ? $employee->toArray() : null,
+                'leave_types' => LeaveType::all()->toArray(),
+                'leave_policies' => LeavePolicy::with('leaveType')->get()->toArray(),
             ];
 
             $systemInstruction .= "\n\nYou are speaking to an Employee. Here is their personal data context. Answer their questions regarding their attendance, leaves, payroll, or meetings based on this data:\n" . json_encode($contextData);

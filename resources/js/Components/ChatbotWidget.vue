@@ -9,7 +9,7 @@ const isOpen = ref(false);
 const isTyping = ref(false);
 const inputMessage = ref('');
 const messages = ref([
-    { role: 'model', text: 'Hello! I am Khadija, your AI assistant. How can I help you today?' }
+    { role: 'model', text: 'Hello! I am your Virtual HR Assistant. How can I help you today?' }
 ]);
 
 const chatContainer = ref(null);
@@ -80,7 +80,7 @@ const formatMessage = (text) => {
                         <i class="pi pi-sparkles text-white text-sm"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-sm leading-tight">Khadija AI Assistant</h3>
+                        <h3 class="font-bold text-sm leading-tight">Virtual HR Assistant</h3>
                         <p class="text-xs text-blue-200">Online</p>
                     </div>
                 </div>
