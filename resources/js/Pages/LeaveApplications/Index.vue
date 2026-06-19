@@ -60,6 +60,43 @@ const submitted = ref(false);
 const isEdit = ref(false);
 const viewDialog = ref(false);
 const viewData = ref(null);
+const modifyDialog = ref(false);
+const modifyForm = useForm({
+    id: null,
+    start_date: null,
+    end_date: null,
+    hr_modification_reason: ''
+});
+
+const openModifyDialog = (app) => {
+    modifyForm.clearErrors();
+    modifyForm.id = app.id;
+    modifyForm.start_date = new Date(app.start_date);
+    modifyForm.end_date = new Date(app.end_date);
+    modifyForm.hr_modification_reason = app.hr_modification_reason || '';
+    modifyDialog.value = true;
+};
+
+const saveModifiedDates = () => {
+    const formData = {
+        start_date: formatDateForBackend(modifyForm.start_date),
+        end_date: formatDateForBackend(modifyForm.end_date),
+        hr_modification_reason: modifyForm.hr_modification_reason
+    };
+
+    router.put(route('leave-applications.modify-dates', modifyForm.id), formData, {
+        onSuccess: () => {
+            modifyDialog.value = false;
+            alertConfig.value = {
+                title: 'Success!',
+                message: 'Leave application dates modified successfully.',
+                type: 'success',
+                showCancel: false
+            };
+            showAlert.value = true;
+        }
+    });
+};
 
 // SweetAlert state
 const showAlert = ref(false);
@@ -322,6 +359,12 @@ const calculateDays = (start, end) => {
                                 <i class="pi pi-eye"></i>
                             </Button>
                             <Button v-if="slotProps.data.status === 'pending' && !isEmployee"
+                                @click="openModifyDialog(slotProps.data)"
+                                class="!bg-orange-100 !text-orange-600 !border-orange-100 hover:!bg-orange-200 !rounded-full !w-10 !h-10 !p-0 flex items-center justify-center p-button-icon-only"
+                                rounded aria-label="Modify Dates" title="Modify Dates">
+                                <i class="pi pi-pencil"></i>
+                            </Button>
+                            <Button v-if="slotProps.data.status === 'pending' && !isEmployee"
                                 @click="approveApplication(slotProps.data)"
                                 class="!bg-emerald-100 !text-emerald-600 !border-emerald-100 hover:!bg-emerald-200 !rounded-full !w-10 !h-10 !p-0 flex items-center justify-center"
                                 rounded aria-label="Approve">
@@ -387,6 +430,35 @@ const calculateDays = (start, end) => {
             </template>
         </Dialog>
 
+        <Dialog v-model:visible="modifyDialog" :style="{ width: '500px' }" header="Modify Leave Dates" :modal="true" class="p-fluid">
+            <div class="flex flex-col gap-4 pt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="font-bold">New Start Date *</label>
+                        <DatePicker v-model="modifyForm.start_date" dateFormat="yy-mm-dd" showIcon />
+                        <small class="text-red-500" v-if="modifyForm.errors.start_date">{{ modifyForm.errors.start_date }}</small>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="font-bold">New End Date *</label>
+                        <DatePicker v-model="modifyForm.end_date" dateFormat="yy-mm-dd" showIcon :minDate="modifyForm.start_date" />
+                        <small class="text-red-500" v-if="modifyForm.errors.end_date">{{ modifyForm.errors.end_date }}</small>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="font-bold">Modification Reason</label>
+                    <Textarea v-model="modifyForm.hr_modification_reason" rows="3" placeholder="Optional reason for changing dates" />
+                    <small class="text-red-500" v-if="modifyForm.errors.hr_modification_reason">{{ modifyForm.errors.hr_modification_reason }}</small>
+                </div>
+            </div>
+            <template #footer>
+                <Button label="Cancel" icon="pi pi-times"
+                    class="bg-gray-200 text-gray-700 hover:bg-gray-300 !px-6 !py-2.5 !border-gray-200"
+                    @click="modifyDialog = false" />
+                <Button label="Save Changes" icon="pi pi-check" @click="saveModifiedDates" :loading="modifyForm.processing"
+                    class="!bg-[#1C0D82] !border-[#1C0D82] hover:!bg-[#150a61] text-white !px-6 !py-2.5" />
+            </template>
+        </Dialog>
+
         <Dialog v-model:visible="viewDialog" :style="{ width: '500px' }" header="Leave Application Details"
             :modal="true">
             <div class="flex flex-col gap-4" v-if="viewData">
@@ -404,8 +476,16 @@ const calculateDays = (start, end) => {
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1">
                         <label class="font-bold text-gray-500">Period</label>
-                        <div class="p-2 bg-gray-50 rounded border text-sm">{{ viewData.start_date }} to {{
-                            viewData.end_date }}
+                        <div class="p-2 bg-gray-50 rounded border text-sm">
+                            <div v-if="viewData.hr_modified" class="text-orange-600 font-medium mb-1">
+                                <Tag severity="warning" value="Modified by HR" class="mr-2"></Tag>
+                            </div>
+                            <div :class="{'line-through text-gray-400': viewData.hr_modified}">
+                                {{ viewData.hr_modified ? viewData.original_start_date : viewData.start_date }} to {{ viewData.hr_modified ? viewData.original_end_date : viewData.end_date }}
+                            </div>
+                            <div v-if="viewData.hr_modified" class="mt-1 font-bold text-orange-700">
+                                {{ viewData.start_date }} to {{ viewData.end_date }}
+                            </div>
                         </div>
                     </div>
                     <div class="flex flex-col gap-1">
@@ -417,9 +497,13 @@ const calculateDays = (start, end) => {
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="font-bold text-gray-500">Reason</label>
-                    <div class="p-2 bg-gray-50 rounded border text-sm overflow-hidden text-ellipsis">{{ viewData.reason
-                        || '-'
-                    }}</div>
+                    <div class="p-2 bg-gray-50 rounded border text-sm overflow-hidden text-ellipsis">{{ viewData.reason || '-' }}</div>
+                </div>
+                <div class="flex flex-col gap-1" v-if="viewData.hr_modified">
+                    <label class="font-bold text-gray-500">HR Modification Reason</label>
+                    <div class="p-2 bg-orange-50 rounded border border-orange-200 text-sm overflow-hidden text-ellipsis text-orange-800">
+                        {{ viewData.hr_modification_reason || 'No reason provided' }}
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1">

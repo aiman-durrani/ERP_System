@@ -220,27 +220,27 @@ const rowClass = (data) => {
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1">
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">First Name</span>
-                        <span class="text-gray-900 font-medium">{{ selectedApplication.candidate.first_name }}</span>
+                        <span class="text-gray-900 font-medium">{{ selectedApplication.candidate?.first_name }}</span>
                     </div>
                     <div class="flex flex-col gap-1">
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Name</span>
-                        <span class="text-gray-900 font-medium">{{ selectedApplication.candidate.last_name }}</span>
+                        <span class="text-gray-900 font-medium">{{ selectedApplication.candidate?.last_name }}</span>
                     </div>
                     <div class="flex flex-col gap-1">
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</span>
-                        <span class="text-gray-900 font-medium truncate">{{ selectedApplication.candidate.email
+                        <span class="text-gray-900 font-medium truncate">{{ selectedApplication.candidate?.email
                             }}</span>
                     </div>
                     <div class="flex flex-col gap-1">
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone</span>
-                        <span class="text-gray-900 font-medium">{{ selectedApplication.candidate.phone }}</span>
+                        <span class="text-gray-900 font-medium">{{ selectedApplication.candidate?.phone }}</span>
                     </div>
                 </div>
 
                 <div class="p-4 bg-gray-50 rounded-xl space-y-4">
                     <div class="flex flex-col gap-1">
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Job Posting</span>
-                        <span class="text-[#1C0D82] font-bold">{{ selectedApplication.job.title }}</span>
+                        <span class="text-[#1C0D82] font-bold">{{ selectedApplication.job?.title }}</span>
                     </div>
                     <div class="flex flex-col gap-1">
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Current Status</span>

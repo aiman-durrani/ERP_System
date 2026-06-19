@@ -34,6 +34,19 @@ const alertConfig = ref({
 
 const viewDialog = ref(false);
 const viewData = ref(null);
+const candidateDialog = ref(false);
+const submitted = ref(false);
+const isEdit = ref(false);
+
+const form = useForm({
+    id: null,
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    cover_letter: ''
+});
+
 
 const handleSearch = () => {
     router.get(route('candidates.index'), {

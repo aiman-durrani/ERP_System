@@ -122,6 +122,36 @@ class LeaveApplicationController extends Controller
         return back()->with('success', 'Leave application deleted successfully.');
     }
 
+    public function modifyDates(Request $request, LeaveApplication $leaveApplication)
+    {
+        $user = auth()->user();
+        if ($user->user_type === 'employee') {
+            abort(403, 'Only HR can modify leave dates.');
+        }
+
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'hr_modification_reason' => 'nullable|string',
+        ]);
+
+        $data = [
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'hr_modification_reason' => $validated['hr_modification_reason'],
+        ];
+
+        if (!$leaveApplication->hr_modified) {
+            $data['original_start_date'] = $leaveApplication->start_date;
+            $data['original_end_date'] = $leaveApplication->end_date;
+            $data['hr_modified'] = true;
+        }
+
+        $this->leaveService->updateApplication($leaveApplication, $data);
+
+        return redirect()->back()->with('success', 'Leave application dates modified successfully.');
+    }
+
     public function approve(LeaveApplication $leaveApplication)
     {
         $this->leaveService->updateApplication($leaveApplication, [

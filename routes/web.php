@@ -54,6 +54,7 @@ Route::middleware('auth:web,employee')->group(function () {
     Route::resource('leave-types', \App\Http\Controllers\LeaveTypeController::class);
     Route::resource('leave-policies', \App\Http\Controllers\LeavePolicyController::class);
     Route::resource('leave-applications', \App\Http\Controllers\LeaveApplicationController::class);
+    Route::put('leave-applications/{leave_application}/modify-dates', [\App\Http\Controllers\LeaveApplicationController::class, 'modifyDates'])->name('leave-applications.modify-dates');
     Route::post('leave-applications/{leave_application}/approve', [\App\Http\Controllers\LeaveApplicationController::class, 'approve'])->name('leave-applications.approve');
     Route::post('leave-applications/{leave_application}/reject', [\App\Http\Controllers\LeaveApplicationController::class, 'reject'])->name('leave-applications.reject');
 

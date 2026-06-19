@@ -16,10 +16,22 @@ class LeaveApplication extends Model
         'leave_type_id',
         'start_date',
         'end_date',
+        'original_start_date',
+        'original_end_date',
+        'hr_modified',
+        'hr_modification_reason',
         'reason',
         'attachment',
         'status',
         'approved_by',
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'original_start_date' => 'date',
+        'original_end_date' => 'date',
+        'hr_modified' => 'boolean',
     ];
 
     public function employee()
