@@ -107,6 +107,11 @@ class Employee extends Model
         return $this->hasMany(Warning::class);
     }
 
+    public function complaints()
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
     public function salaryProfile()
     {
         return $this->hasOne(SalaryProfile::class);

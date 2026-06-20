@@ -48,6 +48,8 @@ class ChatbotController extends Controller
                 $candidates = Candidate::all();
                 $applications = JobApplication::with(['candidate', 'job'])->get();
                 $users = User::all();
+                $warnings = \App\Models\Warning::with('employee')->get();
+                $complaints = \App\Models\Complaint::with('employee')->get();
 
                 $contextData = [
                     'role' => 'HR Administrator',
@@ -60,9 +62,12 @@ class ChatbotController extends Controller
                     'job_applications' => $applications->toArray(),
                     'leave_types' => LeaveType::all()->toArray(),
                     'leave_policies' => LeavePolicy::with('leaveType')->get()->toArray(),
+                    'employee_warnings' => $warnings->toArray(),
+                    'employee_complaints' => $complaints->toArray(),
                 ];
 
-                $systemInstruction .= "\n\nYou are speaking to an HR Administrator. Here is the full company context:\n" . json_encode($contextData);
+                $systemInstruction .= "\n\nYou are speaking to an HR Administrator. Here is the full company context including employees, leaves, payroll, recruitment, warnings, and complaints:\n" . json_encode($contextData);
+                $systemInstruction .= "\n\nCRITICAL HR RULE: As an HR Administrator, you do NOT have personal employee data (like your own leaves, attendance, or payroll) in this context. If the user asks 'how many leaves do I have', 'what is my salary', etc., you MUST reply: 'You are currently on the HR Dashboard. I can only provide company-wide HR data here. To check your personal employee records, please switch to the Employee Dashboard.' NEVER attribute the company's leave applications or employee records to the HR Administrator.";
             } else {
                 // Employee Context: Load only their personal data
                 $employee = $user->employee()->with([
@@ -72,6 +77,8 @@ class ChatbotController extends Controller
                     'attendanceRecords' => fn($q) => $q->latest('date')->take(30),
                     'leaveApplications' => fn($q) => $q->latest()->take(10),
                     'meetings' => fn($q) => $q->where('start_time', '>=', now()->toDateString())->take(5),
+                    'complaints' => fn($q) => $q->latest()->take(5),
+                    'warnings' => fn($q) => $q->latest()->take(5),
                     'salaryProfile',
                     'contracts'
                 ])->first();
@@ -84,7 +91,7 @@ class ChatbotController extends Controller
                     'leave_policies' => LeavePolicy::with('leaveType')->get()->toArray(),
                 ];
 
-                $systemInstruction .= "\n\nYou are speaking to an Employee. Here is their personal data context. Answer their questions regarding their attendance, leaves, payroll, or meetings based on this data:\n" . json_encode($contextData);
+                $systemInstruction .= "\n\nYou are speaking to an Employee. Here is their personal data context. Answer their questions regarding their attendance, leaves, payroll, meetings, complaints, or warnings based on this data:\n" . json_encode($contextData);
             }
 
             $reply = $this->geminiService->chat($request->messages, $systemInstruction);

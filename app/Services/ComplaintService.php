@@ -14,9 +14,14 @@ class ComplaintService extends BaseService
         $perPage = $filters['perPage'] ?? 10;
         $query = Complaint::query()->with('employee');
 
+        $referer = request()->header('referer', '');
+        $user = str_contains($referer, '/employee') && auth('employee')->check() 
+            ? auth('employee')->user() 
+            : Auth::user();
+
         // If user is employee, only show their complaints
-        if (Auth::user()->hasRole('employee')) {
-            $employee = \App\Models\Employee::withoutGlobalScopes()->where('user_id', Auth::id())->first();
+        if ($user && $user->hasRole('employee')) {
+            $employee = \App\Models\Employee::withoutGlobalScopes()->where('user_id', $user->id)->first();
             if ($employee) {
                 $query->where('employee_id', $employee->id);
             } else {
@@ -41,7 +46,12 @@ class ComplaintService extends BaseService
 
     public function create(array $data): Complaint
     {
-        $employee = \App\Models\Employee::withoutGlobalScopes()->where('user_id', Auth::id())->first();
+        $referer = request()->header('referer', '');
+        $user = str_contains($referer, '/employee') && auth('employee')->check() 
+            ? auth('employee')->user() 
+            : Auth::user();
+
+        $employee = \App\Models\Employee::withoutGlobalScopes()->where('user_id', $user->id ?? 0)->first();
         if (!$employee) {
             throw new \Exception('Logged in user is not an employee.');
         }

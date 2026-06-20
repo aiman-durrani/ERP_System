@@ -181,7 +181,7 @@ class AttendanceRecordController extends Controller
             return redirect()->back()->with('error', 'No active clock-in record found.');
         }
 
-        $clockInTime = \Carbon\Carbon::parse($record->date . ' ' . $record->clock_in);
+        $clockInTime = \Carbon\Carbon::parse($record->date->format('Y-m-d') . ' ' . $record->clock_in);
         $totalHours = $clockInTime->diffInMinutes($clockOutTime) / 60;
 
         $record->update([
