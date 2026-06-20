@@ -31,7 +31,13 @@ class ChatbotController extends Controller
                 'messages' => 'required|array',
             ]);
 
-            $user = auth()->user();
+            $referer = $request->header('referer', '');
+            
+            if (str_contains($referer, '/employee')) {
+                $user = auth('employee')->check() ? auth('employee')->user() : auth('web')->user();
+            } else {
+                $user = auth('web')->check() ? auth('web')->user() : auth('employee')->user();
+            }
             $systemInstruction = "You are a helpful, professional, and friendly AI assistant for the company ERP and HR Management System. You answer questions based on the provided context data. Be concise and format your responses clearly using markdown. If you are asked something outside the context or something you don't know, politely say you don't have that information.";
 
             if ($user->user_type === 'hr') {
