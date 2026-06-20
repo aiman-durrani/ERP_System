@@ -122,12 +122,19 @@ class GeminiService
                 'Content-Type' => 'application/json',
             ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", $payload);
 
+            Log::error('Gemini raw response: ' . $response->body());
+
             if ($response->failed()) {
                 Log::error('Gemini API call failed: ' . $response->body());
                 return null;
             }
 
             $result = $response->json();
+            
+            if (!isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+                Log::error('Gemini returned no text. Full result: ' . json_encode($result));
+            }
+            
             return $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
         } catch (\Exception $e) {
             Log::error('Error calling Gemini API: ' . $e->getMessage());
