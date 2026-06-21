@@ -1,7 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
+
+const page = usePage();
 
 const props = defineProps({
     transfers: Array,
@@ -10,6 +12,22 @@ const props = defineProps({
 });
 
 const showModal = ref(false);
+
+// Toast notification state
+const toast = ref({ visible: false, message: '', type: 'error' });
+let toastTimer = null;
+
+const showToast = (message, type = 'error') => {
+    clearTimeout(toastTimer);
+    toast.value = { visible: true, message, type };
+    toastTimer = setTimeout(() => { toast.value.visible = false; }, 5000);
+};
+
+const dismissToast = () => {
+    clearTimeout(toastTimer);
+    toast.value.visible = false;
+};
+
 const form = useForm({
     from_warehouse_id: '',
     to_warehouse_id: '',
@@ -33,8 +51,19 @@ const submitTransfer = () => {
         onSuccess: () => {
             showModal.value = false;
             form.reset();
-        }
+            showToast('Transfer request created successfully.', 'success');
+        },
+        onFinish: () => {
+            if (page.props.flash?.error) {
+                showModal.value = false;
+                showToast(page.props.flash.error, 'error');
+            }
+        },
     });
+};
+
+const closeModal = () => {
+    showModal.value = false;
 };
 
 const completeTransfer = (id) => {
@@ -107,7 +136,7 @@ const getStatusClass = (status) => {
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <button v-if="tr.status === 'Pending'" @click="completeTransfer(tr.id)" class="text-xs font-black text-green-600 hover:underline uppercase tracking-widest mr-3">Complete</button>
-                                    <button class="text-xs font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest">Details</button>
+                                    <Link :href="route('inventory.transfers.show', tr.id)" class="text-xs font-black text-gray-400 hover:text-[#1C0D82] uppercase tracking-widest transition-colors">Details</Link>
                                 </td>
                             </tr>
                             <tr v-if="transfers.length === 0">
@@ -124,8 +153,10 @@ const getStatusClass = (status) => {
             <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden" @click.stop>
                  <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <h3 class="font-black text-[#1C0D82] uppercase tracking-wider">Inter-Warehouse Stock Transfer</h3>
-                    <button @click="showModal = false" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+                    <button @click="closeModal" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
                 </div>
+
+                <!-- Server-side error banner removed; errors shown as toast -->
                 <form @submit.prevent="submitTransfer" class="p-6 space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-1">
@@ -185,7 +216,7 @@ const getStatusClass = (status) => {
                     </div>
 
                     <div class="pt-4 flex justify-end gap-3 border-t border-gray-100">
-                        <button type="button" @click="showModal = false" class="px-6 py-2 rounded-lg border border-gray-200 text-gray-600 text-xs font-bold hover:bg-gray-50 transition-colors uppercase tracking-widest">Cancel</button>
+                        <button type="button" @click="closeModal" class="px-6 py-2 rounded-lg border border-gray-200 text-gray-600 text-xs font-bold hover:bg-gray-50 transition-colors uppercase tracking-widest">Cancel</button>
                         <button type="submit" :disabled="form.processing" class="px-8 py-2 rounded-lg bg-[#EAB308] text-white text-xs font-black hover:bg-yellow-600 transition-all uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-70">
                             Initiate Transfer
                         </button>
@@ -194,4 +225,30 @@ const getStatusClass = (status) => {
             </div>
         </div>
     </AuthenticatedLayout>
+
+    <!-- Toast Notification (fixed, outside modal) -->
+    <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="translate-x-full opacity-0"
+        enter-to-class="translate-x-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="translate-x-0 opacity-100"
+        leave-to-class="translate-x-full opacity-0"
+    >
+        <div
+            v-if="toast.visible"
+            :class="[
+                'fixed top-6 right-6 z-[9999] flex items-start gap-3 px-4 py-3 rounded-xl shadow-xl max-w-sm border',
+                toast.type === 'error'
+                    ? 'bg-white border-red-200 text-red-700'
+                    : 'bg-white border-green-200 text-green-700'
+            ]"
+        >
+            <i :class="['mt-0.5 flex-shrink-0 text-sm', toast.type === 'error' ? 'pi pi-exclamation-circle' : 'pi pi-check-circle']"></i>
+            <span class="text-xs font-semibold flex-1 leading-relaxed">{{ toast.message }}</span>
+            <button @click="dismissToast" class="ml-2 flex-shrink-0 text-gray-400 hover:text-gray-600">
+                <i class="pi pi-times text-xs"></i>
+            </button>
+        </div>
+    </Transition>
 </template>

@@ -24,6 +24,15 @@ class WarehouseTransferController extends Controller
         ]);
     }
 
+    public function show(WarehouseTransfer $transfer)
+    {
+        $transfer->load(['fromWarehouse', 'toWarehouse', 'creator', 'items.item']);
+
+        return Inertia::render('Inventory/Transfers/Show', [
+            'transfer' => $transfer,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -36,37 +45,46 @@ class WarehouseTransferController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.01',
         ]);
 
-        DB::transaction(function () use ($validated) {
-            $transferCount = WarehouseTransfer::count() + 1;
-            $transferNumber = 'TR-' . str_pad($transferCount, 6, '0', STR_PAD_LEFT);
+        try {
+            DB::transaction(function () use ($validated) {
+                $transferCount = WarehouseTransfer::count() + 1;
+                $transferNumber = 'TR-' . str_pad($transferCount, 6, '0', STR_PAD_LEFT);
 
-            $transfer = WarehouseTransfer::create([
-                'transfer_number' => $transferNumber,
-                'from_warehouse_id' => $validated['from_warehouse_id'],
-                'to_warehouse_id' => $validated['to_warehouse_id'],
-                'transfer_date' => $validated['transfer_date'],
-                'notes' => $validated['notes'],
-                'status' => 'Pending',
-                'created_by' => auth()->id(),
-            ]);
-
-            foreach ($validated['items'] as $itemData) {
-                // Check if source warehouse has enough stock
-                $sourceStock = Stock::where('warehouse_id', $validated['from_warehouse_id'])
-                                     ->where('inventory_item_id', $itemData['inventory_item_id'])
-                                     ->first();
-
-                if (!$sourceStock || $sourceStock->quantity < $itemData['quantity']) {
-                    throw new \Exception("Insufficient stock in source warehouse for item ID: " . $itemData['inventory_item_id']);
-                }
-
-                WarehouseTransferItem::create([
-                    'warehouse_transfer_id' => $transfer->id,
-                    'inventory_item_id' => $itemData['inventory_item_id'],
-                    'quantity' => $itemData['quantity'],
+                $transfer = WarehouseTransfer::create([
+                    'transfer_number' => $transferNumber,
+                    'from_warehouse_id' => $validated['from_warehouse_id'],
+                    'to_warehouse_id' => $validated['to_warehouse_id'],
+                    'transfer_date' => $validated['transfer_date'],
+                    'notes' => $validated['notes'],
+                    'status' => 'Pending',
+                    'created_by' => auth()->id(),
                 ]);
-            }
-        });
+
+                foreach ($validated['items'] as $itemData) {
+                    // Check if source warehouse has enough stock
+                    $sourceStock = Stock::where('warehouse_id', $validated['from_warehouse_id'])
+                                         ->where('inventory_item_id', $itemData['inventory_item_id'])
+                                         ->first();
+
+                    if (!$sourceStock || $sourceStock->quantity < $itemData['quantity']) {
+                        $item = \App\Models\InventoryItem::find($itemData['inventory_item_id']);
+                        $itemName = $item ? $item->name : 'Item #' . $itemData['inventory_item_id'];
+                        $available = $sourceStock ? $sourceStock->quantity : 0;
+                        throw new \Exception(
+                            "Insufficient stock for \"{$itemName}\". Requested: {$itemData['quantity']}, Available: {$available}."
+                        );
+                    }
+
+                    WarehouseTransferItem::create([
+                        'warehouse_transfer_id' => $transfer->id,
+                        'inventory_item_id' => $itemData['inventory_item_id'],
+                        'quantity' => $itemData['quantity'],
+                    ]);
+                }
+            });
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
 
         return redirect()->back()->with('success', 'Transfer request created.');
     }
