@@ -463,10 +463,25 @@ const formatCurrency = (v) => new Intl.NumberFormat('en-US', { style: 'currency'
                 <div v-if="selectedItem" class="dlg-body">
                     <div class="view-hero teal-hero">
                         <div class="view-hero-title">{{ selectedItem.leave_type?.name }}</div>
-                        <div class="view-hero-sub">{{ selectedItem.start_date }} → {{ selectedItem.end_date }} · {{ calculateDays(selectedItem.start_date, selectedItem.end_date) }} days</div>
+                        <div v-if="selectedItem.hr_modified" class="view-hero-sub">
+                            <span style="text-decoration: line-through; opacity: 0.6;">{{ selectedItem.original_start_date?.split('T')[0] }} → {{ selectedItem.original_end_date?.split('T')[0] }}</span>
+                            <span style="margin: 0 0.25rem;">→</span>
+                            <span style="color: #d97706; font-weight: 800;">{{ selectedItem.start_date?.split('T')[0] }} → {{ selectedItem.end_date?.split('T')[0] }}</span>
+                            <span> · {{ calculateDays(selectedItem.start_date, selectedItem.end_date) }} days</span>
+                            <div style="margin-top: 4px;">
+                                <span style="display: inline-block; font-size: 0.62rem; font-weight: 800; color: #d97706; background: #fffbeb; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.05em;">Modified by HR</span>
+                            </div>
+                        </div>
+                        <div v-else class="view-hero-sub">
+                            {{ selectedItem.start_date?.split('T')[0] }} → {{ selectedItem.end_date?.split('T')[0] }} · {{ calculateDays(selectedItem.start_date, selectedItem.end_date) }} days
+                        </div>
                         <Tag :value="selectedItem.status.toUpperCase()" :severity="getStatusSeverity(selectedItem.status)" class="mt-2" />
                     </div>
                     <p class="view-desc">{{ selectedItem.reason }}</p>
+                    <div v-if="selectedItem.hr_modified && selectedItem.hr_modification_reason" style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 0.7rem 0.85rem; font-size: 0.78rem; color: #92400e; margin-top: 0.75rem; text-align: left;">
+                        <span style="display: block; font-size: 0.63rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #d97706; margin-bottom: 4px;">HR Modification Reason</span>
+                        <p style="margin: 0; padding: 0; line-height: 1.6;">{{ selectedItem.hr_modification_reason }}</p>
+                    </div>
                 </div>
                 <template #footer><div class="dlg-footer"><button class="dlg-cancel" @click="viewLeaveDialog = false">Close</button></div></template>
             </Dialog>

@@ -481,10 +481,10 @@ const calculateDays = (start, end) => {
                                 <Tag severity="warning" value="Modified by HR" class="mr-2"></Tag>
                             </div>
                             <div :class="{'line-through text-gray-400': viewData.hr_modified}">
-                                {{ viewData.hr_modified ? viewData.original_start_date : viewData.start_date }} to {{ viewData.hr_modified ? viewData.original_end_date : viewData.end_date }}
+                                {{ viewData.hr_modified ? viewData.original_start_date?.split('T')[0] : viewData.start_date?.split('T')[0] }} to {{ viewData.hr_modified ? viewData.original_end_date?.split('T')[0] : viewData.end_date?.split('T')[0] }}
                             </div>
                             <div v-if="viewData.hr_modified" class="mt-1 font-bold text-orange-700">
-                                {{ viewData.start_date }} to {{ viewData.end_date }}
+                                {{ viewData.start_date?.split('T')[0] }} to {{ viewData.end_date?.split('T')[0] }}
                             </div>
                         </div>
                     </div>

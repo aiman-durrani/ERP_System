@@ -19,6 +19,9 @@ const alertMessage = ref(null);
 const alertType = ref(null); // 'success' or 'error'
 const loadingItems = ref({}); // { item_id: true/false }
 
+const selectedForecast = ref(null);
+const showModal = ref(false);
+
 const runForecast = async (item) => {
     const itemId = item.item_id;
     loadingItems.value[itemId] = true;
@@ -32,18 +35,16 @@ const runForecast = async (item) => {
         
         if (response.data.success) {
             const data = response.data.data;
-            alertMessage.value = response.data.message + 
-                ` (Predicted Demand: ${data.predicted_demand}, Recommended Stock: ${data.recommended_stock}, Suggested Reorder: ${data.suggested_reorder_quantity}, Status: ${data.status})`;
-            alertType.value = 'success';
             
             // Update the row forecast data dynamically
             const targetItem = localForecastData.value.find(i => i.item_id === itemId);
+            let uom = '';
             if (targetItem) {
                 targetItem.status = data.status;
                 
                 // Keep the original units/UOM styling in place
                 const match = targetItem.suggested_reorder_qty ? targetItem.suggested_reorder_qty.toString().match(/[a-zA-Z\s]+$/) : null;
-                const uom = match ? match[0] : '';
+                uom = match ? match[0] : '';
                 targetItem.suggested_reorder_qty = data.suggested_reorder_quantity + uom;
                 
                 if (data.suggested_reorder_quantity > 0) {
@@ -52,6 +53,28 @@ const runForecast = async (item) => {
                     targetItem.suggested_order_date = 'Stock Sufficient';
                 }
             }
+
+            // Map status for display (Healthy / Low / Critical)
+            let mappedStatus = 'Healthy';
+            if (data.status === 'Critical') {
+                mappedStatus = 'Critical';
+            } else if (data.status === 'Low' || data.status === 'Reorder Required') {
+                mappedStatus = 'Low';
+            }
+
+            selectedForecast.value = {
+                item: item,
+                itemName: item.item_name,
+                currentStock: item.current_stock,
+                predictedDemand: data.predicted_demand,
+                recommendedStock: data.recommended_stock,
+                suggestedReorderQuantity: data.suggested_reorder_quantity,
+                suggestedOrderDate: data.suggested_reorder_quantity > 0 ? new Date().toISOString().split('T')[0] : 'Stock Sufficient',
+                mappedStatus: mappedStatus,
+                originalStatus: data.status,
+                uom: uom || ''
+            };
+            showModal.value = true;
         } else {
             alertMessage.value = response.data.message || 'Forecast run failed.';
             alertType.value = 'error';
@@ -63,6 +86,10 @@ const runForecast = async (item) => {
     } finally {
         loadingItems.value[itemId] = false;
     }
+};
+
+const runAgain = async (item) => {
+    await runForecast(item);
 };
 </script>
 
@@ -255,6 +282,149 @@ const runForecast = async (item) => {
                     </div>
                 </div>
             </div>
+
+            <!-- AI Demand Forecast Modal -->
+            <Transition
+                enter-active-class="transition ease-out duration-200"
+                enter-from-class="opacity-0 scale-95"
+                enter-to-class="opacity-100 scale-100"
+                leave-active-class="transition ease-in duration-150"
+                leave-from-class="opacity-100 scale-100"
+                leave-to-class="opacity-0 scale-95"
+            >
+                <div v-if="showModal && selectedForecast" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" @click.self="showModal = false">
+                    <!-- Modal Card -->
+                    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform border border-gray-100 flex flex-col my-8">
+                        
+                        <!-- Modal Header -->
+                        <div class="bg-gradient-to-r from-[#1C0D82] to-[#4F46E5] px-6 py-5 flex items-center justify-between text-white shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+                                    <i class="pi pi-bolt text-lg text-yellow-300"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h3 class="text-lg font-black leading-none">AI Demand Forecast Report</h3>
+                                    <p class="text-indigo-200 text-[10px] uppercase font-bold tracking-widest mt-1">Inventory Intelligence</p>
+                                </div>
+                            </div>
+                            <button @click="showModal = false" class="text-white/80 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg">
+                                <i class="pi pi-times text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- Modal Body -->
+                        <div class="p-6 space-y-4 overflow-y-auto max-h-[calc(100vh-16rem)]">
+                            <!-- Item Summary & Status Card -->
+                            <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl flex justify-between items-center shadow-sm">
+                                <div class="text-left">
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Item Details</p>
+                                    <h4 class="text-base font-black text-slate-800 mt-1">{{ selectedForecast.itemName }}</h4>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Status</p>
+                                    <span :class="[
+                                        'px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-sm border',
+                                        selectedForecast.mappedStatus === 'Critical' 
+                                            ? 'bg-red-50 text-red-700 border-red-200' 
+                                            : (selectedForecast.mappedStatus === 'Low' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-green-50 text-green-700 border-green-200')
+                                    ]">
+                                        {{ selectedForecast.mappedStatus }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Metrics Stack -->
+                            <div class="space-y-3">
+                                <!-- Current Stock -->
+                                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-indigo-100 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500">
+                                            <i class="pi pi-box text-sm"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Current Stock</p>
+                                            <p class="text-sm font-black text-slate-800 mt-0.5">{{ selectedForecast.currentStock }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Predicted Demand -->
+                                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-indigo-100 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                            <i class="pi pi-chart-line text-sm"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">Predicted Demand</p>
+                                            <p class="text-sm font-black text-indigo-900 mt-0.5">{{ selectedForecast.predictedDemand }}{{ selectedForecast.uom }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Recommended Stock Level -->
+                                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-indigo-100 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                            <i class="pi pi-check text-sm"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">Recommended Stock Level</p>
+                                            <p class="text-sm font-black text-indigo-900 mt-0.5">{{ selectedForecast.recommendedStock }}{{ selectedForecast.uom }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Suggested Reorder Quantity -->
+                                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-indigo-100 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500" :class="selectedForecast.suggestedReorderQuantity > 0 ? 'bg-indigo-50 text-indigo-600' : ''">
+                                            <i class="pi pi-shopping-cart text-sm"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Suggested Reorder Quantity</p>
+                                            <p class="text-sm font-black mt-0.5" :class="selectedForecast.suggestedReorderQuantity > 0 ? 'text-indigo-700' : 'text-slate-500'">
+                                                {{ selectedForecast.suggestedReorderQuantity }}{{ selectedForecast.uom }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Suggested Order Date -->
+                                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-indigo-100 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center" :class="selectedForecast.suggestedOrderDate === 'Stock Sufficient' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'">
+                                            <i class="pi pi-calendar text-sm"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Suggested Order Date</p>
+                                            <p class="text-sm font-black mt-0.5" :class="selectedForecast.suggestedOrderDate === 'Stock Sufficient' ? 'text-green-600' : 'text-red-600'">
+                                                {{ selectedForecast.suggestedOrderDate }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="bg-slate-50 border-t border-slate-100 px-6 py-4 flex items-center justify-end gap-3">
+                            <button @click="showModal = false" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 active:scale-95 transition-all">
+                                Close
+                            </button>
+                            <button 
+                                @click="runAgain(selectedForecast.item)" 
+                                :disabled="loadingItems[selectedForecast.item.item_id]"
+                                class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-[#1C0D82] hover:bg-[#3221b3] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2 shadow-md shadow-indigo-100"
+                            >
+                                <i v-if="loadingItems[selectedForecast.item.item_id]" class="pi pi-spin pi-spinner text-xs"></i>
+                                <i v-else class="pi pi-refresh text-xs"></i>
+                                Run Again
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </Transition>
         </div>
     </AuthenticatedLayout>
 </template>
