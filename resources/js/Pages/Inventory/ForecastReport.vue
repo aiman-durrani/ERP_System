@@ -151,15 +151,7 @@ const runAgain = async (item) => {
                                     Details</th>
                                 <th class="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-wider">Current
                                     Stock</th>
-                                <th
-                                    class="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-wider text-center">
-                                    Daily Usage</th>
-                                <th
-                                    class="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-wider text-center">
-                                    Days Until Empty</th>
-                                <th
-                                    class="px-6 py-4 text-xs font-black text-orange-600 uppercase tracking-wider text-center bg-orange-50/20">
-                                    HR Linked Demand</th>
+
                                 <th
                                     class="px-6 py-4 text-xs font-black text-indigo-600 uppercase tracking-wider text-center bg-indigo-50/30">
                                     Suggested Reorder</th>
@@ -187,19 +179,7 @@ const runAgain = async (item) => {
                                         class="text-xs font-black text-[#1C0D82] bg-indigo-50 px-2 py-0.5 rounded inline-block">
                                         {{ item.current_stock }}</p>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="text-xs font-bold text-gray-600">{{ item.daily_usage }}</span>
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span
-                                        :class="['text-xs font-black', parseInt(item.days_until_empty) <= 15 ? 'text-red-600' : 'text-gray-900']">
-                                        {{ item.days_until_empty }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-center bg-orange-50/10">
-                                    <span class="text-xs font-black text-orange-600">{{ item.hr_linked_demand > 0 ? '+'
-                                        : '' }}{{ item.hr_linked_demand }} units</span>
-                                </td>
+
                                 <td class="px-6 py-4 text-center bg-indigo-50/10">
                                     <span v-if="parseFloat(item.suggested_reorder_qty) > 0"
                                         class="text-xs font-black text-indigo-700">
