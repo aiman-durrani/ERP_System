@@ -421,19 +421,33 @@ Update the structure below to match your repository layout.
 
 ---
 
-## Contributing
+## Screenshots
 
-Contributions are welcome. Suggested workflow:
+### HR Dashboard
+![HR Dashboard](screenshots/HR%20_dashbaord.jpeg)
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/my-feature`
-3. Commit changes: `git commit -m "Add my feature"`
-4. Push to your branch: `git push origin feat/my-feature`
-5. Open a Pull Request with a clear description of the change
+### Inventory Dashboard
+![Inventory Dashboard](screenshots/Inventory_dashbaord.jpeg)
 
-Please add tests for new features and follow existing code style.
+### AI Demand Forecasting Dashboard
+![AI Demand Forecasting Dashboard](screenshots/AI_demand_forecasting_dashbaord.jpeg)
 
----
+### AI Demand Forecasting Report
+![AI Demand Forecasting Report](screenshots/AI_demand_forecasting_report.jpeg)
+
+### Employees Dashboard
+![Employees Dashboard](screenshots/Employee_dashbaord.jpeg)
+
+### Chatbot
+![Chatbot](screenshots/Chatboat.jpeg)
+
+### Resume Screening
+![Resume Screening](screenshots/AI_resume_Screening.jpeg)
+
+
+### Ai Resume Evaluation
+![Resume Screening](screenshots/AI_resume_Evaluation.jpeg)
+
 
 ## License
 
@@ -454,10 +468,3 @@ GitHub: https://github.com/Junaid-Shiekh
 
 ---
 
-Thank you for building HRM_System! If you'd like, I can:
-- update this README to reflect the exact stack and commands found in the repository (I can inspect the repo files and tailor commands),
-- create a `.env.example` template based on config usage in the code,
-- or generate a CONTRIBUTING.md and ISSUE_TEMPLATE/PR template.
-
-Tell me which of those you'd like next and I'll proceed.
-```
